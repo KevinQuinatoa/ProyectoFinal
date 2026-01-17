@@ -21,14 +21,32 @@ int main(int argc, char const *argv[])
             }
             break;
         case 3:
-            r = prediccion(zonas);
-            mostrarPrediccion(r, zonas);
-            break;
-        case 4:
-            r = prediccion(zonas);
+             if (leerDAT(zonas)) {
+                    r = prediccion(zonas);          // Calcula predicción
+                    guardarPrediccion(r);           // Guarda en historial
+                    mostrarPrediccion(r, zonas);    // Muestra resultado
+                }
+                break;
+       case 4:  // Recomendaciones de la última predicción
+        if (leerDAT(zonas)) {
 
-            mostrarRecomendaciones(r);
-            break;
+            int z = seleccionarZona();
+            if(z == 6) break;  // Salir al menú
+            z--; // índice 0-4
+
+            ResultadoPrediccion r = leerUltimaPrediccionZona(z);
+
+            if(r.zona == -1) {
+                printf("No hay predicciones registradas para esta zona.\n");
+            } else {
+                mostrarRecomendaciones(r);  // muestra alertas y recomendaciones
+            }
+
+            // Aquí NO llamamos a mostrarPrediccionesPorZona()
+            // Se regresa directamente al menú
+        }
+        break;
+
         case 5:
             printf("Saliendo del programa.......\n");
             return 0;

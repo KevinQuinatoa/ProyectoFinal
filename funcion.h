@@ -21,11 +21,11 @@ typedef struct {
 } Zona;
 
 typedef struct {
-    float pNA, pNO2, pSO2, pCO2, pPM25;
-    float IC;
     int zona;
     int mes;
     int dia;
+    float pNA, pNO2, pSO2, pCO2, pPM25;
+    float IC;
 } ResultadoPrediccion;
 
 void eliminarSaltoLinea(char *cadena);
@@ -40,4 +40,7 @@ void precargarDatos();
 int leerDAT(Zona *zonas);
 void mostrarDatos(Zona *zonas);
 void mostrarRecomendaciones(ResultadoPrediccion r);
+void mostrarPrediccionesPorZona(Zona *zonas);
+void guardarPrediccion(ResultadoPrediccion r);
 void mostrarPrediccion(ResultadoPrediccion r, Zona *zonas);
+ResultadoPrediccion leerUltimaPrediccionZona(int zona);

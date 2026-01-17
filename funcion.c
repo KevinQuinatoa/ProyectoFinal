@@ -53,7 +53,7 @@ int menu(){
     printf("1. Precargar datos (TXT -> DAT)\n");
     printf("2. Mostrar datos por zona y mes\n");
     printf("3. Ingresar nuevo dia y predecir\n");
-    printf("4. Recomendaciones\n");
+    printf("4. Recomendaciones y ver predicciones anteriores\n");
     printf("5. Salir\n");
     printf("Seleccione una opcion: ");
     opc=opcionValida(1,5);
@@ -300,59 +300,104 @@ void mostrarRecomendaciones(ResultadoPrediccion r){
     /* NA */
     printf("\nNA: %.2f (Limite: %.2f)\n", r.pNA, limiteNA);
     if(r.pNA > limiteNA){
-        printf("→ Supera el limite en %.2f\n", r.pNA - limiteNA);
+        printf("Supera el limite en %.2f\n", r.pNA - limiteNA);
         printf("Recomendacion: Limitar actividades al aire libre.\n");
     }else{
-        printf("→ Dentro del limite en %.2f\n", limiteNA - r.pNA);
+        printf("Dentro del limite en %.2f\n", limiteNA - r.pNA);
     }
 
     /* NO2 */
     printf("\nNO2: %.2f (Limite: %.2f)\n", r.pNO2, limiteNO2);
     if(r.pNO2 > limiteNO2){
-        printf("→ Supera el limite en %.2f\n", r.pNO2 - limiteNO2);
+        printf("Supera el limite en %.2f\n", r.pNO2 - limiteNO2);
         printf("Recomendacion: Reducir uso de vehiculos y evitar zonas congestionadas.\n");
     }else{
-        printf("→ Dentro del limite en %.2f\n", limiteNO2 - r.pNO2);
+        printf("Dentro del limite en %.2f\n", limiteNO2 - r.pNO2);
     }
 
     /* SO2 */
     printf("\nSO2: %.2f (Limite: %.2f)\n", r.pSO2, limiteSO2);
     if(r.pSO2 > limiteSO2){
-        printf("→ Supera el limite en %.2f\n", r.pSO2 - limiteSO2);
+        printf("Supera el limite en %.2f\n", r.pSO2 - limiteSO2);
         printf("Recomendacion: Evitar exposicion industrial prolongada.\n");
     }else{
-        printf("→ Dentro del limite en %.2f\n", limiteSO2 - r.pSO2);
+        printf("Dentro del limite en %.2f\n", limiteSO2 - r.pSO2);
     }
 
     /* CO2 */
     printf("\nCO2: %.2f (Limite: %.2f)\n", r.pCO2, limiteCO2);
     if(r.pCO2 > limiteCO2){
-        printf("→ Supera el limite en %.2f\n", r.pCO2 - limiteCO2);
+        printf("Supera el limite en %.2f\n", r.pCO2 - limiteCO2);
         printf("Recomendacion: Mejorar ventilacion y reducir emisiones.\n");
     }else{
-        printf("→ Dentro del limite en %.2f\n", limiteCO2 - r.pCO2);
+        printf("Dentro del limite en %.2f\n", limiteCO2 - r.pCO2);
     }
 
     /* PM2.5 */
     printf("\nPM2.5: %.2f (Limite: %.2f)\n", r.pPM25, limitePM25);
     if(r.pPM25 > limitePM25){
-        printf("→ Supera el limite en %.2f\n", r.pPM25 - limitePM25);
+        printf("Supera el limite en %.2f\n", r.pPM25 - limitePM25);
         printf("Recomendacion: Uso de mascarilla y evitar actividad fisica.\n");
     }else{
-        printf("→ Dentro del limite en %.2f\n", limitePM25 - r.pPM25);
+        printf("Dentro del limite en %.2f\n", limitePM25 - r.pPM25);
     }
+}
+
+void mostrarPrediccionesPorZona(Zona *zonas) {
+    int z = seleccionarZona();
+    if(z == 6) return;
+    z--; // índice 0-4
+
+    FILE *archivo = fopen("predicciones.dat", "rb");
+    if(archivo == NULL){
+        printf("No hay predicciones registradas.\n");
+        return;
+    }
+
+    ResultadoPrediccion r;
+    int encontrado = 0;
+
+    printf("\nPredicciones de la zona: %s\n", zonas[z].nombre);
+    printf("Mes | Dia | NA  | NO2 | SO2 | CO2 | PM2.5 | IC\n");
+
+    while(fread(&r, sizeof(ResultadoPrediccion), 1, archivo) == 1){
+        if(r.zona == z){
+            printf("%3d | %3d | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f\n",
+                   r.mes + 1, r.dia,
+                   r.pNA, r.pNO2, r.pSO2, r.pCO2, r.pPM25,
+                   r.IC);
+            encontrado = 1;
+        }
+    }
+
+    if(!encontrado)
+        printf("No hay predicciones para esta zona.\n");
+
+    fclose(archivo);
+}
+
+
+void guardarPrediccion(ResultadoPrediccion r) {
+    FILE *archivo = fopen("predicciones.dat", "ab"); // agregar al final
+    if(archivo == NULL){
+        printf("Error al abrir archivo de predicciones.\n");
+        return;
+    }
+
+    fwrite(&r, sizeof(ResultadoPrediccion), 1, archivo);
+    fclose(archivo);
 }
 
 void mostrarPrediccion(ResultadoPrediccion r, Zona *zonas){
     if(r.zona == -1 || r.mes == -1){
-        printf("No se seleccionó zona o mes válido.\n");
+        printf("No se selecciono zona o mes válido.\n");
         return;
     }
 
     printf("\n--- RESULTADO DE PREDICCION ---\n");
     printf("Zona: %s\n", zonas[r.zona].nombre);
     printf("Mes: %d\n", r.mes + 1);
-    printf("Día ingresado: %d\n", r.dia);
+    printf("Dia ingresado: %d\n", r.dia);
     printf("NA: %.2f\n", r.pNA);
     printf("NO2: %.2f\n", r.pNO2);
     printf("SO2: %.2f\n", r.pSO2);
@@ -361,3 +406,20 @@ void mostrarPrediccion(ResultadoPrediccion r, Zona *zonas){
     printf("Indice de Contaminación: %.2f\n", r.IC);
 }
 
+ResultadoPrediccion leerUltimaPrediccionZona(int zona) {
+    ResultadoPrediccion r;
+    r.zona = -1; // indicador de que no se encontró
+
+    FILE *archivo = fopen("predicciones.dat", "rb");
+    if(!archivo) return r;
+
+    ResultadoPrediccion temp;
+    while(fread(&temp, sizeof(ResultadoPrediccion), 1, archivo) == 1) {
+        if(temp.zona == zona) {
+            r = temp; // guarda la última predicción encontrada
+        }
+    }
+
+    fclose(archivo);
+    return r;
+}
