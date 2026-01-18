@@ -28,22 +28,8 @@ int main(int argc, char const *argv[])
                 }
                 break;
        case 4:  // Recomendaciones de la última predicción
-        if (leerDAT(zonas)) {
-
-            int z = seleccionarZona();
-            if(z == 6) break;  // Salir al menú
-            z--; // índice 0-4
-
-            ResultadoPrediccion r = leerUltimaPrediccionZona(z);
-
-            if(r.zona == -1) {
-                printf("No hay predicciones registradas para esta zona.\n");
-            } else {
-                mostrarRecomendaciones(r);  // muestra alertas y recomendaciones
-            }
-
-            // Aquí NO llamamos a mostrarPrediccionesPorZona()
-            // Se regresa directamente al menú
+        if(leerDAT(zonas)){
+        mostrarPrediccionesYRecomendaciones(zonas);
         }
         break;
 

@@ -343,10 +343,7 @@ void mostrarRecomendaciones(ResultadoPrediccion r){
     }
 }
 
-void mostrarPrediccionesPorZona(Zona *zonas) {
-    int z = seleccionarZona();
-    if(z == 6) return;
-    z--; // índice 0-4
+void mostrarPrediccionesPorZona(Zona *zonas, int z) {
 
     FILE *archivo = fopen("predicciones.dat", "rb");
     if(archivo == NULL){
@@ -364,17 +361,19 @@ void mostrarPrediccionesPorZona(Zona *zonas) {
         if(r.zona == z){
             printf("%3d | %3d | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f\n",
                    r.mes + 1, r.dia,
-                   r.pNA, r.pNO2, r.pSO2, r.pCO2, r.pPM25,
-                   r.IC);
+                   r.pNA, r.pNO2, r.pSO2,
+                   r.pCO2, r.pPM25, r.IC);
             encontrado = 1;
         }
     }
 
-    if(!encontrado)
+    if(!encontrado){
         printf("No hay predicciones para esta zona.\n");
+    }
 
     fclose(archivo);
 }
+
 
 
 void guardarPrediccion(ResultadoPrediccion r) {
@@ -403,7 +402,7 @@ void mostrarPrediccion(ResultadoPrediccion r, Zona *zonas){
     printf("SO2: %.2f\n", r.pSO2);
     printf("CO2: %.2f\n", r.pCO2);
     printf("PM2.5: %.2f\n", r.pPM25);
-    printf("Indice de Contaminación: %.2f\n", r.IC);
+    printf("Indice de Contaminacion: %.2f\n", r.IC);
 }
 
 ResultadoPrediccion leerUltimaPrediccionZona(int zona) {
@@ -423,3 +422,41 @@ ResultadoPrediccion leerUltimaPrediccionZona(int zona) {
     fclose(archivo);
     return r;
 }
+
+void mostrarPrediccionesYRecomendaciones(Zona *zonas) {
+
+    int z = seleccionarZona();
+    if(z == 6) return;
+    z--;
+
+    FILE *archivo = fopen("predicciones.dat", "rb");
+    if(archivo == NULL){
+        printf("No hay predicciones registradas.\n");
+        return;
+    }
+
+    ResultadoPrediccion r;
+    int encontrado = 0;
+
+    printf("\n=== PREDICCIONES Y RECOMENDACIONES ===\n");
+    printf("Zona: %s\n", zonas[z].nombre);
+
+    while(fread(&r, sizeof(ResultadoPrediccion), 1, archivo) == 1){
+        if(r.zona == z){
+
+            printf("\nMes: %d | Dia: %d\n", r.mes + 1, r.dia);
+            printf("NA: %.2f  NO2: %.2f  SO2: %.2f  CO2: %.2f  PM2.5: %.2f\n",
+                   r.pNA, r.pNO2, r.pSO2, r.pCO2, r.pPM25);
+            printf("Indice IC: %.2f\n", r.IC);
+
+            mostrarRecomendaciones(r);
+            encontrado = 1;
+        }
+    }
+
+    fclose(archivo);
+
+    if(!encontrado){
+        printf("No hay predicciones para esta zona.\n");
+    }
+    }
