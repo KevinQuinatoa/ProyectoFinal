@@ -20,17 +20,27 @@ int main(int argc, char const *argv[])
             mostrarDatos(zonas);
             }
             break;
-        case 3:
-        if (leerDAT(zonas)) {
-            r = prediccion(zonas);
+        case 3: {
+        if(leerDAT(zonas)){
+            ResultadoPrediccion r = prediccion(zonas);
+
             if(r.zona != -1){
-                guardarPrediccion(r);
                 mostrarPrediccion(r, zonas);
-            } else {
-                printf("Prediccion cancelada.\n");
+
+                /*  ALERTA AUTOMÁTICA */
+                if(hayAlerta(r)){
+                    printf("\n ALERTA AMBIENTAL DETECTADA \n");
+                    mostrarRecomendaciones(r);
+                }else{
+                    printf("\nCalidad del aire dentro de los limites.\n");
+                }
+
+                guardarPrediccion(r);
             }
         }
         break;
+        }
+
        case 4:  // Recomendaciones de la última predicción
         if(leerDAT(zonas)){
         mostrarPrediccionesYRecomendaciones(zonas);

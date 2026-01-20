@@ -52,3 +52,4 @@ void mostrarPrediccionesYRecomendaciones(Zona *zonas);
 void generarReporteHistorico(Zona *zonas);
 void generarReporteActual(Zona *zonas);
 void obtenerFechaActual(int *dia, int *mes, int *anio);
+int hayAlerta(ResultadoPrediccion r);

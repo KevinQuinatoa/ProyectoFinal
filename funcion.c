@@ -152,6 +152,13 @@ ResultadoPrediccion prediccion(Zona *zonas){
     return r;
 }
 
+int hayAlerta(ResultadoPrediccion r){
+    return (r.pNA   > 100 ||
+            r.pNO2  > 25  ||
+            r.pSO2  > 40  ||
+            r.pCO2  > 4   ||
+            r.pPM25 > 15);
+}
 
 
 void mostrarRecomendaciones(ResultadoPrediccion r){
