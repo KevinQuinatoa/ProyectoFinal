@@ -2,6 +2,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct {
     float na;
@@ -45,3 +46,6 @@ void guardarPrediccion(ResultadoPrediccion r);
 void mostrarPrediccion(ResultadoPrediccion r, Zona *zonas);
 ResultadoPrediccion leerUltimaPrediccionZona(int zona);
 void mostrarPrediccionesYRecomendaciones(Zona *zonas);
+void generarReporteHistorico(Zona *zonas);
+void generarReporteActual(Zona *zonas);
+void obtenerFechaActual(int *dia, int *mes, int *anio);

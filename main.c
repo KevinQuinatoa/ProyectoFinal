@@ -34,6 +34,12 @@ int main(int argc, char const *argv[])
         break;
 
         case 5:
+            if(leerDAT(zonas)){
+                generarReporteHistorico(zonas);
+                generarReporteActual(zonas);
+            }
+            break;
+        case 6:
             printf("Saliendo del programa.......\n");
             return 0;
         default:
@@ -41,7 +47,7 @@ int main(int argc, char const *argv[])
             break;
         }
         
-        } while (opc != 5);
+        } while (opc != 6);
     
     return 0;
 

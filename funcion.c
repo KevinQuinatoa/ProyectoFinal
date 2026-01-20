@@ -54,9 +54,10 @@ int menu(){
     printf("2. Mostrar datos por zona y mes\n");
     printf("3. Ingresar nuevo dia y predecir\n");
     printf("4. Recomendaciones y ver predicciones anteriores\n");
-    printf("5. Salir\n");
+    printf("5. Generar reportes\n");
+    printf("6. Salir\n");
     printf("Seleccione una opcion: ");
-    opc=opcionValida(1,5);
+    opc=opcionValida(1,6);
     return opc;
 }
 // menu secundario para elegir la zona
@@ -460,3 +461,93 @@ void mostrarPrediccionesYRecomendaciones(Zona *zonas) {
         printf("No hay predicciones para esta zona.\n");
     }
     }
+
+void generarReporteHistorico(Zona *zonas){
+
+    int z = seleccionarZona();
+    if(z == 6) return;
+    z--;
+
+    int m = seleccionarMes();
+    if(m == -1) return;
+
+    int diaR, mesR, anioR;
+    obtenerFechaActual(&diaR, &mesR, &anioR);
+
+    FILE *reporte = fopen("reporte_historico.txt", "w");
+    if(!reporte){
+        printf("Error al crear reporte historico.\n");
+        return;
+    }
+
+    fprintf(reporte, "===== REPORTE HISTORICO DE MONITOREO =====\n");
+    fprintf(reporte, "Fecha de generacion: %02d/%02d/%d\n", diaR, mesR, anioR);
+    fprintf(reporte, "Zona: %s\n", zonas[z].nombre);
+    fprintf(reporte, "Mes analizado: %d\n\n", m + 1);
+
+    fprintf(reporte, "Dia\tNA\tNO2\tSO2\tCO2\tPM2.5\n");
+
+    for(int d = 0; d < 30; d++){
+        fprintf(reporte, "%2d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",
+            d + 1,
+            zonas[z].meses[m].dias[d].na,
+            zonas[z].meses[m].dias[d].no2,
+            zonas[z].meses[m].dias[d].so2,
+            zonas[z].meses[m].dias[d].co2,
+            zonas[z].meses[m].dias[d].pm25
+        );
+    }
+
+    fclose(reporte);
+    printf("Reporte historico generado correctamente.\n");
+}
+
+
+void generarReporteActual(Zona *zonas){
+
+    int diaR, mesR, anioR;
+    obtenerFechaActual(&diaR, &mesR, &anioR);
+
+    FILE *archivo = fopen("predicciones.dat", "rb");
+    FILE *reporte = fopen("reporte_actual.txt", "w");
+
+    if(!archivo || !reporte){
+        printf("Error al generar reporte actual.\n");
+        return;
+    }
+
+    fprintf(reporte, "===== REPORTE ACTUAL DE MONITOREO =====\n");
+    fprintf(reporte, "Fecha de generacion: %02d/%02d/%d\n\n", diaR, mesR, anioR);
+
+    ResultadoPrediccion r;
+
+    while(fread(&r, sizeof(ResultadoPrediccion), 1, archivo) == 1){
+
+        fprintf(reporte, "Zona: %s\n", zonas[r.zona].nombre);
+        fprintf(reporte, "Mes: %d | Dia: %d\n", r.mes + 1, r.dia);
+
+        fprintf(reporte, "NA: %.2f\n", r.pNA);
+        fprintf(reporte, "NO2: %.2f\n", r.pNO2);
+        fprintf(reporte, "SO2: %.2f\n", r.pSO2);
+        fprintf(reporte, "CO2: %.2f\n", r.pCO2);
+        fprintf(reporte, "PM2.5: %.2f\n", r.pPM25);
+        fprintf(reporte, "Indice IC: %.2f\n", r.IC);
+        fprintf(reporte, "------------------------------------\n");
+    }
+
+    fclose(archivo);
+    fclose(reporte);
+
+    printf("Reporte actual generado correctamente.\n");
+}
+
+
+void obtenerFechaActual(int *dia, int *mes, int *anio){
+    time_t t = time(NULL);
+    struct tm fecha = *localtime(&t);
+
+    *dia = fecha.tm_mday;
+    *mes = fecha.tm_mon + 1;
+    *anio = fecha.tm_year + 1900;
+}
+
