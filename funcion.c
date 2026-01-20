@@ -271,11 +271,11 @@ ResultadoPrediccion prediccion(Zona *zonas){
     r.dia = 31; // asumimos que es el nuevo día después del día 30
 
     /* COEFICIENTES (VALORES TEMPORALES) */
-    float coefNA   = 0.2;   // REVISAR
-    float coefNO2  = 0.25;  // REVISAR
-    float coefSO2  = 0.2;   // REVISAR
+    float coefNA   = 0.1;   // REVISAR
+    float coefNO2  = 0.3;  // REVISAR
+    float coefSO2  = 0.15;   // REVISAR
     float coefCO2  = 0.15;  // REVISAR
-    float coefPM25 = 0.2;   // REVISAR
+    float coefPM25 = 0.3;   // REVISAR
 
     /* Índice de Contaminación */
     r.IC = (coefNA   * r.pNA) +
@@ -292,9 +292,9 @@ void mostrarRecomendaciones(ResultadoPrediccion r){
     printf("\n--- ALERTAS Y RECOMENDACIONES ---\n");
 
     float limiteNA   = 100;
-    float limiteNO2  = 40;
-    float limiteSO2  = 20;
-    float limiteCO2  = 5000;
+    float limiteNO2  = 25;
+    float limiteSO2  = 40;
+    float limiteCO2  = 4;
     float limitePM25 = 15;
 
     /* NA */
