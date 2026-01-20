@@ -1,292 +1,157 @@
 #include "funcion.h"
 
+/* ================= VALIDACIONES ================= */
 
 int opcionValida(int min, int max){
     int numero;
-    while(1)
-    {
-        if (scanf ("%d", &numero) ==1 && numero >= min && numero<=max)
-            {
-                while(getchar()!='\n');
-                return numero;
-            }else{
-                printf("Error, ingrese una opcion valida: ");
-                while(getchar()!='\n');
-            } 
-    }
-}
-
-void eliminarSaltoLinea(char *cadena){
-    size_t len = strlen(cadena);
-    if(len > 0 && cadena[len - 1] == '\n'){
-        cadena[len - 1] = '\0';
+    while(1){
+        if(scanf("%d",&numero)==1 && numero>=min && numero<=max){
+            while(getchar()!='\n');
+            return numero;
+        }
+        printf("Error, opcion invalida: ");
+        while(getchar()!='\n');
     }
 }
 
 float leerFloatValido(float min){
-    float valor;
-    int valido;
-
-    do{
-        valido = scanf("%f", &valor);
-
-        while(getchar() != '\n'); // limpia buffer
-
-        if(valido != 1){
-            printf("Error: Ingrese un numero valido: ");
-        } 
-        else if(valor < min){
-            printf("Error: No se permiten valores negativos. Ingrese nuevamente: ");
-            valido = 0;
+    float v;
+    while(1){
+        if(scanf("%f",&v)==1 && v>=min){
+            while(getchar()!='\n');
+            return v;
         }
-
-    }while(valido != 1);
-
-    return valor;
+        printf("Error, ingrese un valor valido: ");
+        while(getchar()!='\n');
+    }
 }
 
-
-// menu principal del main
-int menu(){
-    int opc;
-    printf("----------- SISTEMA DE PREDICCION DE CONTAMINACION ---------\n");
-    printf("1. Precargar datos (TXT -> DAT)\n");
-    printf("2. Mostrar datos por zona y mes\n");
-    printf("3. Ingresar nuevo dia y predecir\n");
-    printf("4. Recomendaciones y ver predicciones anteriores\n");
-    printf("5. Generar reportes\n");
-    printf("6. Salir\n");
-    printf("Seleccione una opcion: ");
-    opc=opcionValida(1,6);
-    return opc;
+void eliminarSaltoLinea(char *c){
+    size_t l=strlen(c);
+    if(l>0 && c[l-1]=='\n') c[l-1]='\0';
 }
-// menu secundario para elegir la zona
+
 /* ================= MENUS ================= */
 
-int seleccionarZona(){
-    printf("\nSeleccione la zona:\n");
-    printf("1. Centro\n");
-    printf("2. Norte\n");
-    printf("3. Sur\n");
-    printf("4. Valle\n");
-    printf("5. Quitumbe\n");
+int menu(){
+    printf("\n--- SISTEMA DE MONITOREO ---\n");
+    printf("1. Precargar datos\n");
+    printf("2. Mostrar datos\n");
+    printf("3. Ingresar nuevo dia y predecir\n");
+    printf("4. Recomendaciones\n");
+    printf("5. Reportes\n");
     printf("6. Salir\n");
     printf("Opcion: ");
-    return opcionValida(1, 6);
+    return opcionValida(1,6);
 }
 
+int seleccionarZona(){
+    printf("\n1.Centro 2.Norte 3.Sur 4.Valle 5.Quitumbe 6.Salir\n");
+    return opcionValida(1,6);
+}
 
 int seleccionarMes(){
-    printf("\nSeleccione el mes:\n");
-    printf("1 - 12  (0 para salir)\n");
-    printf("Opcion: ");
-    int m = opcionValida(0, 12);
-    return m - 1;   // si es 0 devuelve -1
+    printf("Mes (1-12, 0 salir): ");
+    int m=opcionValida(0,12);
+    return m-1;
 }
 
 /* ================= ARCHIVOS ================= */
 
 void precargarDatos(){
     Zona zonas[5];
-    FILE *txt = fopen("historico.txt", "r");
-    FILE *dat = fopen("zonas.dat", "wb");
-
-    if(txt == NULL || dat == NULL){
-        printf("Error al abrir historico.txt o zonas.dat\n");
-        return;
-    }
+    FILE *txt=fopen("historico.txt","r");
+    FILE *dat=fopen("zonas.dat","wb");
+    if(!txt||!dat){ printf("Error archivos\n"); return; }
 
     char linea[200];
-    int z, m, d;
-
-    for(z = 0; z < 5; z++){
-        /* Leer nombre de la zona */
-        do {
-            if(fgets(linea, sizeof(linea), txt) == NULL){
-                printf("Error leyendo nombre de zona\n");
-                fclose(txt);
-                fclose(dat);
-                return;
-            }
-        } while(linea[0] == '\n' || linea[0] == '#');
-
+    for(int z=0;z<5;z++){
+        do{ fgets(linea,200,txt);}while(linea[0]=='#'||linea[0]=='\n');
         eliminarSaltoLinea(linea);
-        strcpy(zonas[z].nombre, linea);
+        strcpy(zonas[z].nombre,linea);
 
-        /* Leer meses y días */
-        for(m = 0; m < 12; m++){
-            d = 0;
-            while(d < 30){
-                if(fgets(linea, sizeof(linea), txt) == NULL){
-                    printf("Error leyendo datos\n");
-                    fclose(txt);
-                    fclose(dat);
-                    return;
-                }
-
-                if(linea[0] == '\n' || linea[0] == '#')
-                    continue;
-
-                sscanf(linea, "%f %f %f %f %f",
+        for(int m=0;m<12;m++){
+            for(int d=0;d<30;d++){
+                do{ fgets(linea,200,txt);}while(linea[0]=='#'||linea[0]=='\n');
+                sscanf(linea,"%f %f %f %f %f %f %f %f",
                     &zonas[z].meses[m].dias[d].na,
                     &zonas[z].meses[m].dias[d].no2,
                     &zonas[z].meses[m].dias[d].so2,
                     &zonas[z].meses[m].dias[d].co2,
-                    &zonas[z].meses[m].dias[d].pm25
-                );
-                d++;
+                    &zonas[z].meses[m].dias[d].pm25,
+                    &zonas[z].meses[m].dias[d].temperatura,
+                    &zonas[z].meses[m].dias[d].humedad,
+                    &zonas[z].meses[m].dias[d].viento);
             }
         }
     }
-
-    fwrite(zonas, sizeof(Zona), 5, dat);
-
-    fclose(txt);
-    fclose(dat);
-
-    printf("Datos precargados correctamente.\n");
+    fwrite(zonas,sizeof(Zona),5,dat);
+    fclose(txt); fclose(dat);
+    printf("Datos precargados correctamente\n");
 }
 
-
-
 int leerDAT(Zona *zonas){
-    FILE *dat = fopen("zonas.dat", "rb");
-    if(dat == NULL){
-        printf("Debe precargar los datos primero.\n");
-        return 0;
-    }
-
-    fread(zonas, sizeof(Zona), 5, dat);
-    fclose(dat);
+    FILE *f=fopen("zonas.dat","rb");
+    if(!f){ printf("Debe precargar datos\n"); return 0;}
+    fread(zonas,sizeof(Zona),5,f);
+    fclose(f);
     return 1;
 }
 
-/* ================= MOSTRAR DATOS ================= */
+/* ================= MOSTRAR ================= */
 
 void mostrarDatos(Zona *zonas){
-    int z = seleccionarZona();
-    if(z == 6){
-        printf("Regresando al menu principal...\n");
-        return;
-    }
-    z--;   // convertir a índice 0-4
+    int z=seleccionarZona(); if(z==6) return; z--;
+    int m=seleccionarMes(); if(m==-1) return;
 
-    int m = seleccionarMes();
-    if(m == -1){
-        printf("Regresando al menu principal...\n");
-        return;
-    }
-
-    int d;
-    printf("\nZona: %s | Mes %d\n", zonas[z].nombre, m + 1);
-    printf("Dia  NA  NO2  SO2  CO2  PM2.5\n");
-
-    for(d = 0; d < 30; d++){
-        printf("%2d  %.1f  %.1f  %.1f  %.1f  %.1f\n",
-            d + 1,
-            zonas[z].meses[m].dias[d].na,
-            zonas[z].meses[m].dias[d].no2,
-            zonas[z].meses[m].dias[d].so2,
-            zonas[z].meses[m].dias[d].co2,
-            zonas[z].meses[m].dias[d].pm25
-        );
+    printf("\nDia NA NO2 SO2 CO2 PM2.5 T H V\n");
+    for(int d=0;d<30;d++){
+        Dia x=zonas[z].meses[m].dias[d];
+        printf("%2d %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
+            d+1,x.na,x.no2,x.so2,x.co2,x.pm25,
+            x.temperatura,x.humedad,x.viento);
     }
 }
 
-
-/* ================= PREDICCION Y RECOMENDACIONES ================= */
+/* ================= PREDICCION ================= */
 
 ResultadoPrediccion prediccion(Zona *zonas){
-    ResultadoPrediccion r;
-    float pesos[11] = {5,5,5,6,6,7,8,10,12,14,22};
-    
+    ResultadoPrediccion r={0};
+    int z=seleccionarZona(); if(z==6){r.zona=-1;return r;} z--;
+    int m=seleccionarMes(); if(m==-1){r.zona=-1;return r;}
 
-    int z = seleccionarZona();
-    if(z == 6){  // si el usuario decide salir del menú de zona
-        r.pNA = r.pNO2 = r.pSO2 = r.pCO2 = r.pPM25 = r.IC = 0;
-        r.zona = -1;
-        r.mes  = -1;
-        r.dia  = -1;
-        return r;
-    }
-    z--; // Ajuste a índice 0-based
+    r.zona=z; r.mes=m;
 
-    int m = seleccionarMes();
-    if(m == -1){  // si el usuario decide salir del menú de mes
-        r.pNA = r.pNO2 = r.pSO2 = r.pCO2 = r.pPM25 = r.IC = 0;
-        r.zona = -1;
-        r.mes  = -1;
-        r.dia  = -1;
-        return r;
-    }
+    Dia nuevo;
+    printf("\n--- NUEVO DIA ---\n");
+    printf("NA: "); nuevo.na=leerFloatValido(0);
+    printf("NO2: "); nuevo.no2=leerFloatValido(0);
+    printf("SO2: "); nuevo.so2=leerFloatValido(0);
+    printf("CO2: "); nuevo.co2=leerFloatValido(0);
+    printf("PM2.5: "); nuevo.pm25=leerFloatValido(0);
+    printf("Temperatura: "); nuevo.temperatura=leerFloatValido(-50);
+    printf("Humedad: "); nuevo.humedad=leerFloatValido(0);
+    printf("Viento: "); nuevo.viento=leerFloatValido(0);
 
-    // Guardamos la zona y mes seleccionados en r
-    r.zona = z;
-    r.mes  = m;
+    r.pNA=nuevo.na;
+    r.pNO2=nuevo.no2;
+    r.pSO2=nuevo.so2;
+    r.pCO2=nuevo.co2;
+    r.pPM25=nuevo.pm25;
 
-    Dia nuevoDia;
-    printf("\nIngrese datos del nuevo dia\n");
+    float factor=1;
+    if(nuevo.temperatura>30) factor*=1.1;
+    if(nuevo.humedad>70) factor*=1.05;
+    if(nuevo.viento<3) factor*=1.1;
 
-    printf("NA: ");
-    nuevoDia.na = leerFloatValido(0);
+    r.pNA*=factor; r.pNO2*=factor; r.pSO2*=factor;
+    r.pCO2*=factor; r.pPM25*=factor;
 
-    printf("NO2: ");
-    nuevoDia.no2 = leerFloatValido(0);
-
-    printf("SO2: ");
-    nuevoDia.so2 = leerFloatValido(0);
-
-    printf("CO2: ");
-    nuevoDia.co2 = leerFloatValido(0);
-
-    printf("PM2.5: ");
-    nuevoDia.pm25 = leerFloatValido(0);
-
-    float sumaNA = 0, sumaNO2 = 0, sumaSO2 = 0, sumaCO2 = 0, sumaPM25 = 0;
-
-    /* Últimos 10 días */
-    int i;
-    for(i = 0; i < 10; i++){
-        sumaNA   += zonas[z].meses[m].dias[20+i].na   * pesos[i];
-        sumaNO2  += zonas[z].meses[m].dias[20+i].no2  * pesos[i];
-        sumaSO2  += zonas[z].meses[m].dias[20+i].so2  * pesos[i];
-        sumaCO2  += zonas[z].meses[m].dias[20+i].co2  * pesos[i];
-        sumaPM25 += zonas[z].meses[m].dias[20+i].pm25 * pesos[i];
-    }
-
-    /* Día ingresado */
-    sumaNA   += nuevoDia.na   * pesos[10];
-    sumaNO2  += nuevoDia.no2  * pesos[10];
-    sumaSO2  += nuevoDia.so2  * pesos[10];
-    sumaCO2  += nuevoDia.co2  * pesos[10];
-    sumaPM25 += nuevoDia.pm25 * pesos[10];
-
-    /* Promedios ponderados */
-    r.pNA   = sumaNA / 100;
-    r.pNO2  = sumaNO2 / 100;
-    r.pSO2  = sumaSO2 / 100;
-    r.pCO2  = sumaCO2 / 100;
-    r.pPM25 = sumaPM25 / 100;
-
-    /* Guardamos el día ingresado */
-    r.dia = 31; // asumimos que es el nuevo día después del día 30
-
-    /* COEFICIENTES (VALORES TEMPORALES) */
-    float coefNA   = 0.1;   // REVISAR
-    float coefNO2  = 0.3;  // REVISAR
-    float coefSO2  = 0.15;   // REVISAR
-    float coefCO2  = 0.15;  // REVISAR
-    float coefPM25 = 0.3;   // REVISAR
-
-    /* Índice de Contaminación */
-    r.IC = (coefNA   * r.pNA) +
-           (coefNO2  * r.pNO2) +
-           (coefSO2  * r.pSO2) +
-           (coefCO2  * r.pCO2) +
-           (coefPM25 * r.pPM25);
-
+    r.IC=0.1*r.pNA+0.3*r.pNO2+0.15*r.pSO2+0.15*r.pCO2+0.3*r.pPM25;
+    r.dia=31;
     return r;
 }
+
 
 
 void mostrarRecomendaciones(ResultadoPrediccion r){

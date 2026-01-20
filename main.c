@@ -21,12 +21,16 @@ int main(int argc, char const *argv[])
             }
             break;
         case 3:
-             if (leerDAT(zonas)) {
-                    r = prediccion(zonas);          // Calcula predicción
-                    guardarPrediccion(r);           // Guarda en historial
-                    mostrarPrediccion(r, zonas);    // Muestra resultado
-                }
-                break;
+        if (leerDAT(zonas)) {
+            r = prediccion(zonas);
+            if(r.zona != -1){
+                guardarPrediccion(r);
+                mostrarPrediccion(r, zonas);
+            } else {
+                printf("Prediccion cancelada.\n");
+            }
+        }
+        break;
        case 4:  // Recomendaciones de la última predicción
         if(leerDAT(zonas)){
         mostrarPrediccionesYRecomendaciones(zonas);

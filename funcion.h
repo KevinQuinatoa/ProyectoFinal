@@ -10,6 +10,9 @@ typedef struct {
     float so2;
     float co2;
     float pm25;
+    float temperatura;
+    float humedad;
+    float viento;
 } Dia;
 
 typedef struct {
