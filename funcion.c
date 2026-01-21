@@ -215,7 +215,7 @@ ResultadoPrediccion prediccion(Zona *zonas){
 
     r.coefNA   = 0.10;
     r.coefNO2  = 0.30;
-    r.coefSO2  = 0.15;
+    r.coefSO2  = 0.15;  
     r.coefCO2  = 0.15;
     r.coefPM25 = 0.30;
 
@@ -489,17 +489,25 @@ void generarReporteActual(Zona *zonas){
     obtenerFechaActual(&diaR, &mesR, &anioR);
 
     FILE *archivo = fopen("predicciones.dat", "rb");
-    FILE *reporte = fopen("reporte_actual.txt", "w");
+    if(!archivo){
+        printf("ERROR: No existe el archivo predicciones.dat\n");
+        printf("Debe generar una prediccion antes del reporte.\n");
+        return;
+    }
 
-    if(!archivo || !reporte){
-        printf("Error al generar reporte actual.\n");
+    FILE *reporte = fopen("reporte_actual.txt", "w");
+    if(!reporte){
+        printf("ERROR: No se pudo crear reporte_actual.txt\n");
+        fclose(archivo);
         return;
     }
 
     fprintf(reporte, "===== REPORTE ACTUAL DE MONITOREO =====\n");
-    fprintf(reporte, "Fecha de generacion: %02d/%02d/%d\n\n", diaR, mesR, anioR);
+    fprintf(reporte, "Fecha de generacion: %02d/%02d/%d\n\n",
+            diaR, mesR, anioR);
 
     ResultadoPrediccion r;
+    int hayDatos = 0;
 
     /* Limites de referencia */
     float limiteNA   = 100;
@@ -509,6 +517,7 @@ void generarReporteActual(Zona *zonas){
     float limitePM25 = 15;
 
     while(fread(&r, sizeof(ResultadoPrediccion), 1, archivo) == 1){
+        hayDatos = 1;
 
         fprintf(reporte, "Zona: %s\n", zonas[r.zona].nombre);
         fprintf(reporte, "Mes: %d | Dia: %d\n", r.mes + 1, r.dia);
@@ -551,11 +560,17 @@ void generarReporteActual(Zona *zonas){
         fprintf(reporte, "------------------------------------\n\n");
     }
 
+    if(!hayDatos){
+        fprintf(reporte, "No existen predicciones registradas.\n");
+        printf("El archivo predicciones.dat esta vacio.\n");
+    }
+
     fclose(archivo);
     fclose(reporte);
 
     printf("Reporte actual generado correctamente.\n");
 }
+
 
 
 
