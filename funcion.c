@@ -149,14 +149,14 @@ ResultadoPrediccion prediccion(Zona *zonas){
 
     Dia nuevo;
     printf("\n--- NUEVO DIA ---\n");
-    printf("NA: ");          nuevo.na = leerFloatValido(0);
-    printf("NO2: ");         nuevo.no2 = leerFloatValido(0);
-    printf("SO2: ");         nuevo.so2 = leerFloatValido(0);
-    printf("CO2: ");         nuevo.co2 = leerFloatValido(0);
-    printf("PM2.5: ");       nuevo.pm25 = leerFloatValido(0);
-    printf("Temperatura: "); nuevo.temperatura = leerFloatValido(-50);
-    printf("Humedad: ");     nuevo.humedad = leerFloatValido(0);
-    printf("Viento: ");      nuevo.viento = leerFloatValido(0);
+    printf("NA µg/m³: ");          nuevo.na = leerFloatValido(0);
+    printf("NO2 µg/m³: ");         nuevo.no2 = leerFloatValido(0);
+    printf("SO2 µg/m³: ");         nuevo.so2 = leerFloatValido(0);
+    printf("CO2 µg/m³: ");         nuevo.co2 = leerFloatValido(0);
+    printf("PM2.5 µg/m³: ");       nuevo.pm25 = leerFloatValido(0);
+    printf("Temperatura C°: "); nuevo.temperatura = leerFloatValido(-50);
+    printf("Humedad (porcentaje): ");     nuevo.humedad = leerFloatValido(0);
+    printf("Viento (m/s): ");      nuevo.viento = leerFloatValido(0);
 
     /* ================= PESOS TEMPORALES =================
        10 días históricos + día ingresado
@@ -513,11 +513,11 @@ void generarReporteActual(Zona *zonas){
         fprintf(reporte, "Zona: %s\n", zonas[r.zona].nombre);
         fprintf(reporte, "Mes: %d | Dia: %d\n", r.mes + 1, r.dia);
 
-        fprintf(reporte, "NA: %.2f\n", r.pNA);
-        fprintf(reporte, "NO2: %.2f\n", r.pNO2);
-        fprintf(reporte, "SO2: %.2f\n", r.pSO2);
-        fprintf(reporte, "CO2: %.2f\n", r.pCO2);
-        fprintf(reporte, "PM2.5: %.2f\n", r.pPM25);
+        fprintf(reporte, "NA µg/m³: %.2f\n", r.pNA);
+        fprintf(reporte, "NO2 µg/m³: %.2f\n", r.pNO2);
+        fprintf(reporte, "SO2 µg/m³: %.2f\n", r.pSO2);
+        fprintf(reporte, "CO2 µg/m³: %.2f\n", r.pCO2);
+        fprintf(reporte, "PM2.5 µg/m³: %.2f\n", r.pPM25);
         fprintf(reporte, "Indice IC: %.2f\n\n", r.IC);
 
         /* ================= RECOMENDACIONES ================= */
