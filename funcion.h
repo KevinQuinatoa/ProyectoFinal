@@ -28,14 +28,31 @@ typedef struct {
     int zona;
     int mes;
     int dia;
-    float pNA, pNO2, pSO2, pCO2, pPM25;
+
+    /* Valores ponderados de contaminantes */
+    float pNA;
+    float pNO2;
+    float pSO2;
+    float pCO2;
+    float pPM25;
+
+    /* Coeficientes usados para el indice */
+    float coefNA;
+    float coefNO2;
+    float coefSO2;
+    float coefCO2;
+    float coefPM25;
+
+    /* Indice de contaminacion final */
     float IC;
+
 } ResultadoPrediccion;
 
 void eliminarSaltoLinea(char *cadena);
 int opcionValida(int min, int max);
 float leerFloatValido(float min);
 int menu();
+int menuReportes();
 int seleccionarZona();
 int seleccionarMes();
 void mostrarDatos(Zona *zonas);

@@ -47,12 +47,22 @@ int main(int argc, char const *argv[])
         }
         break;
 
-        case 5:
-            if(leerDAT(zonas)){
-                generarReporteHistorico(zonas);
-                generarReporteActual(zonas);
+        case 5: {
+        int opR = menuReportes();
+        if(leerDAT(zonas)){
+            switch(opR){
+                case 1:
+                    generarReporteHistorico(zonas);
+                    break;
+                case 2:
+                    generarReporteActual(zonas);
+                    break;
+                case 3:
+                    break;
             }
-            break;
+        }
+        break;
+        }
         case 6:
             printf("Saliendo del programa.......\n");
             return 0;

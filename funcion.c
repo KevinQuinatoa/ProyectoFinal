@@ -45,6 +45,17 @@ int menu(){
     return opcionValida(1,6);
 }
 
+int menuReportes(){
+    int op;
+    printf("\n--- MENU DE REPORTES ---\n");
+    printf("1. Reporte historico (30 dias)\n");
+    printf("2. Reporte actual (predicciones)\n");
+    printf("3. Volver\n");
+    printf("Opcion: ");
+    op = opcionValida(1,3);
+    return op;
+}
+
 int seleccionarZona(){
     printf("\n1.Centro 2.Norte 3.Sur 4.Valle 5.Quitumbe 6.Salir\n");
     return opcionValida(1,6);
@@ -116,41 +127,113 @@ void mostrarDatos(Zona *zonas){
 /* ================= PREDICCION ================= */
 
 ResultadoPrediccion prediccion(Zona *zonas){
-    ResultadoPrediccion r={0};
-    int z=seleccionarZona(); if(z==6){r.zona=-1;return r;} z--;
-    int m=seleccionarMes(); if(m==-1){r.zona=-1;return r;}
+    ResultadoPrediccion r = {0};
 
-    r.zona=z; r.mes=m;
+    int z = seleccionarZona();
+    if(z == 6){
+        r.zona = -1;
+        return r;
+    }
+    z--;
+
+    int m = seleccionarMes();
+    if(m == -1){
+        r.zona = -1;
+        return r;
+    }
+
+    r.zona = z;
+    r.mes  = m;
+
+    /* ================= INGRESO NUEVO DIA ================= */
 
     Dia nuevo;
     printf("\n--- NUEVO DIA ---\n");
-    printf("NA: "); nuevo.na=leerFloatValido(0);
-    printf("NO2: "); nuevo.no2=leerFloatValido(0);
-    printf("SO2: "); nuevo.so2=leerFloatValido(0);
-    printf("CO2: "); nuevo.co2=leerFloatValido(0);
-    printf("PM2.5: "); nuevo.pm25=leerFloatValido(0);
-    printf("Temperatura: "); nuevo.temperatura=leerFloatValido(-50);
-    printf("Humedad: "); nuevo.humedad=leerFloatValido(0);
-    printf("Viento: "); nuevo.viento=leerFloatValido(0);
+    printf("NA: ");          nuevo.na = leerFloatValido(0);
+    printf("NO2: ");         nuevo.no2 = leerFloatValido(0);
+    printf("SO2: ");         nuevo.so2 = leerFloatValido(0);
+    printf("CO2: ");         nuevo.co2 = leerFloatValido(0);
+    printf("PM2.5: ");       nuevo.pm25 = leerFloatValido(0);
+    printf("Temperatura: "); nuevo.temperatura = leerFloatValido(-50);
+    printf("Humedad: ");     nuevo.humedad = leerFloatValido(0);
+    printf("Viento: ");      nuevo.viento = leerFloatValido(0);
 
-    r.pNA=nuevo.na;
-    r.pNO2=nuevo.no2;
-    r.pSO2=nuevo.so2;
-    r.pCO2=nuevo.co2;
-    r.pPM25=nuevo.pm25;
+    /* ================= PESOS TEMPORALES =================
+       10 días históricos + día ingresado
+       Suma total = 100
+    */
 
-    float factor=1;
-    if(nuevo.temperatura>30) factor*=1.1;
-    if(nuevo.humedad>70) factor*=1.05;
-    if(nuevo.viento<3) factor*=1.1;
+    float pesos[11] = {5,5,5,6,6,7,8,10,12,14,22};
 
-    r.pNA*=factor; r.pNO2*=factor; r.pSO2*=factor;
-    r.pCO2*=factor; r.pPM25*=factor;
+    float sumaNA = 0, sumaNO2 = 0, sumaSO2 = 0, sumaCO2 = 0, sumaPM25 = 0;
 
-    r.IC=0.1*r.pNA+0.3*r.pNO2+0.15*r.pSO2+0.15*r.pCO2+0.3*r.pPM25;
-    r.dia=31;
+    /* ================= ÚLTIMOS 10 DÍAS HISTÓRICOS ================= */
+
+    for(int i = 0; i < 10; i++){
+        int d = 20 + i; // días 21 al 30
+
+        sumaNA   += zonas[z].meses[m].dias[d].na   * pesos[i];
+        sumaNO2  += zonas[z].meses[m].dias[d].no2  * pesos[i];
+        sumaSO2  += zonas[z].meses[m].dias[d].so2  * pesos[i];
+        sumaCO2  += zonas[z].meses[m].dias[d].co2  * pesos[i];
+        sumaPM25 += zonas[z].meses[m].dias[d].pm25 * pesos[i];
+    }
+
+    /* ================= DÍA INGRESADO (MAYOR PESO) ================= */
+
+    sumaNA   += nuevo.na   * pesos[10];
+    sumaNO2  += nuevo.no2 * pesos[10];
+    sumaSO2  += nuevo.so2 * pesos[10];
+    sumaCO2  += nuevo.co2 * pesos[10];
+    sumaPM25 += nuevo.pm25 * pesos[10];
+
+    /* ================= PROMEDIOS PONDERADOS ================= */
+
+    r.pNA   = sumaNA   / 100;
+    r.pNO2  = sumaNO2  / 100;
+    r.pSO2  = sumaSO2  / 100;
+    r.pCO2  = sumaCO2  / 100;
+    r.pPM25 = sumaPM25 / 100;
+
+    /* ================= FACTOR AMBIENTAL ================= */
+
+    float factor = 1.0;
+
+    if(nuevo.temperatura > 30) factor *= 1.10;
+    if(nuevo.humedad > 70)     factor *= 1.05;
+    if(nuevo.viento < 3)       factor *= 1.10;
+
+    r.pNA   *= factor;
+    r.pNO2  *= factor;
+    r.pSO2  *= factor;
+    r.pCO2  *= factor;
+    r.pPM25 *= factor;
+
+    /* ================= COEFICIENTES DE CONTAMINANTES =================
+       Importancia relativa de cada contaminante en el índice
+    */
+
+    r.coefNA   = 0.10;
+    r.coefNO2  = 0.30;
+    r.coefSO2  = 0.15;
+    r.coefCO2  = 0.15;
+    r.coefPM25 = 0.30;
+
+    /* ================= ÍNDICE DE CONTAMINACIÓN ================= */
+
+    r.IC = (r.coefNA   * r.pNA)   +
+           (r.coefNO2  * r.pNO2)  +
+           (r.coefSO2  * r.pSO2)  +
+           (r.coefCO2  * r.pCO2)  +
+           (r.coefPM25 * r.pPM25);
+
+    /* ================= FECHA DE PREDICCIÓN ================= */
+
+    r.dia = 31; // día simulado posterior al histórico
+
     return r;
 }
+
 
 int hayAlerta(ResultadoPrediccion r){
     return (r.pNA   > 100 ||
@@ -336,6 +419,8 @@ void mostrarPrediccionesYRecomendaciones(Zona *zonas) {
 
 void generarReporteHistorico(Zona *zonas){
 
+    float pesos[10] = {5,5,6,6,8,8,10,12,15,25}; // suma = 100
+
     int z = seleccionarZona();
     if(z == 6) return;
     z--;
@@ -352,11 +437,13 @@ void generarReporteHistorico(Zona *zonas){
         return;
     }
 
+    /* ================= ENCABEZADO ================= */
     fprintf(reporte, "===== REPORTE HISTORICO DE MONITOREO =====\n");
     fprintf(reporte, "Fecha de generacion: %02d/%02d/%d\n", diaR, mesR, anioR);
     fprintf(reporte, "Zona: %s\n", zonas[z].nombre);
     fprintf(reporte, "Mes analizado: %d\n\n", m + 1);
 
+    /* ================= DATOS DIARIOS ================= */
     fprintf(reporte, "Dia\tNA\tNO2\tSO2\tCO2\tPM2.5\n");
 
     for(int d = 0; d < 30; d++){
@@ -370,9 +457,30 @@ void generarReporteHistorico(Zona *zonas){
         );
     }
 
+    /* ================= CALCULO PONDERADO ================= */
+    float sumaPM25 = 0;
+
+    for(int i = 0; i < 10; i++){
+        sumaPM25 += zonas[z].meses[m].dias[20 + i].pm25 * pesos[i];
+    }
+
+    float promPM25 = sumaPM25 / 100;
+
+    /* ================= ANALISIS ================= */
+    fprintf(reporte, "\n--- ANALISIS PONDERADO (ULTIMOS 10 DIAS) ---\n");
+    fprintf(reporte, "PM2.5 ponderado: %.2f ug/m3\n", promPM25);
+
+    if(promPM25 > 15){
+        fprintf(reporte, "ALERTA: PM2.5 supera el limite recomendado.\n");
+        fprintf(reporte, "Recomendacion: Evitar actividades al aire libre.\n");
+    } else {
+        fprintf(reporte, "PM2.5 dentro de limites aceptables.\n");
+    }
+
     fclose(reporte);
     printf("Reporte historico generado correctamente.\n");
 }
+
 
 
 void generarReporteActual(Zona *zonas){
@@ -393,6 +501,13 @@ void generarReporteActual(Zona *zonas){
 
     ResultadoPrediccion r;
 
+    /* Limites de referencia */
+    float limiteNA   = 100;
+    float limiteNO2  = 25;
+    float limiteSO2  = 20;
+    float limiteCO2  = 40;
+    float limitePM25 = 15;
+
     while(fread(&r, sizeof(ResultadoPrediccion), 1, archivo) == 1){
 
         fprintf(reporte, "Zona: %s\n", zonas[r.zona].nombre);
@@ -403,8 +518,37 @@ void generarReporteActual(Zona *zonas){
         fprintf(reporte, "SO2: %.2f\n", r.pSO2);
         fprintf(reporte, "CO2: %.2f\n", r.pCO2);
         fprintf(reporte, "PM2.5: %.2f\n", r.pPM25);
-        fprintf(reporte, "Indice IC: %.2f\n", r.IC);
-        fprintf(reporte, "------------------------------------\n");
+        fprintf(reporte, "Indice IC: %.2f\n\n", r.IC);
+
+        /* ================= RECOMENDACIONES ================= */
+        fprintf(reporte, "--- ALERTAS Y RECOMENDACIONES ---\n");
+
+        if(r.pNA > limiteNA)
+            fprintf(reporte, "NA: ALTO → Limitar actividades al aire libre.\n");
+        else
+            fprintf(reporte, "NA: Dentro del limite.\n");
+
+        if(r.pNO2 > limiteNO2)
+            fprintf(reporte, "NO2: ALTO → Reducir uso de vehiculos.\n");
+        else
+            fprintf(reporte, "NO2: Dentro del limite.\n");
+
+        if(r.pSO2 > limiteSO2)
+            fprintf(reporte, "SO2: ALTO → Evitar exposicion industrial.\n");
+        else
+            fprintf(reporte, "SO2: Dentro del limite.\n");
+
+        if(r.pCO2 > limiteCO2)
+            fprintf(reporte, "CO2: ALTO → Mejorar ventilacion y control de emisiones.\n");
+        else
+            fprintf(reporte, "CO2: Dentro del limite.\n");
+
+        if(r.pPM25 > limitePM25)
+            fprintf(reporte, "PM2.5: ALTO → Uso de mascarilla y evitar ejercicio.\n");
+        else
+            fprintf(reporte, "PM2.5: Dentro del limite.\n");
+
+        fprintf(reporte, "------------------------------------\n\n");
     }
 
     fclose(archivo);
@@ -412,6 +556,7 @@ void generarReporteActual(Zona *zonas){
 
     printf("Reporte actual generado correctamente.\n");
 }
+
 
 
 void obtenerFechaActual(int *dia, int *mes, int *anio){
