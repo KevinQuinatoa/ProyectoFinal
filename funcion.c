@@ -239,7 +239,7 @@ int hayAlerta(ResultadoPrediccion r){
     return (r.pNA   > 100 ||
             r.pNO2  > 25  ||
             r.pSO2  > 20  ||
-            r.pCO2  > 40   ||
+            r.pCO2  > 4   ||
             r.pPM25 > 15);
 }
 
@@ -250,7 +250,7 @@ void mostrarRecomendaciones(ResultadoPrediccion r){
     float limiteNA   = 100;
     float limiteNO2  = 25;
     float limiteSO2  = 20;
-    float limiteCO2  = 40;
+    float limiteCO2  = 4;
     float limitePM25 = 15;
 
     /* NA */
@@ -505,7 +505,7 @@ void generarReporteActual(Zona *zonas){
     float limiteNA   = 100;
     float limiteNO2  = 25;
     float limiteSO2  = 20;
-    float limiteCO2  = 40;
+    float limiteCO2  = 4;
     float limitePM25 = 15;
 
     while(fread(&r, sizeof(ResultadoPrediccion), 1, archivo) == 1){
